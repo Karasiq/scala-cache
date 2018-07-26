@@ -8,6 +8,7 @@ object SimpleTapeCache {
   }
 }
 
+// TODO: More thread-safe implementation
 class SimpleTapeCache[K, V](maxSize: Int) extends Cache[K, V] {
   protected var keysSeq = Seq.empty[K]
   protected val valuesMap = TrieMap.empty[K, V]

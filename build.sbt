@@ -1,6 +1,8 @@
 lazy val commonSettings = Seq(
+  organization := "com.github.karasiq",
   scalaVersion := "2.12.3",
-  crossScalaVersions := Seq("2.11.11", scalaVersion.value)
+  // crossScalaVersions := Seq(/* TODO "2.11.11",*/ scalaVersion.value),
+  isSnapshot := version.value.endsWith("SNAPSHOT")
 )
 
 lazy val publishSettings = Seq(
@@ -45,9 +47,10 @@ lazy val releaseSettings = Seq(
       checkSnapshotDependencies,
       inquireVersions,
       runClean,
-      runTest,
+      // runTest,
       setReleaseVersion,
-      publishArtifacts, // releaseStepCommand("+publishSigned"),
+      // publishArtifacts,
+      releaseStepCommand("publishSigned"),
       releaseStepCommand("sonatypeRelease"),
       commitReleaseVersion,
       tagRelease,
