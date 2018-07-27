@@ -29,9 +29,10 @@ class LArrayAsyncLRUCache[K](maxSize: Int)(implicit ec: ExecutionContext) extend
         for (i ← bs.indices) array.putByte(i, bs(i))
         array
       }
-      arrayFuture.onComplete(_.failed.foreach(_ ⇒ lruCache.clearCache(key)))
       arrayFuture
     })
+
+    arrayFuture.onComplete(_.failed.foreach(_ ⇒ lruCache.clearCache(key)))
 
     arrayFuture.map { array ⇒
       val byteArray = new Array[Byte](array.length.toInt)
