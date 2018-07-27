@@ -29,6 +29,7 @@ class LArrayAsyncLRUCache[K](maxSize: Int)(implicit ec: ExecutionContext) extend
         for (i ← bs.indices) array.putByte(i, bs(i))
         array
       }
+      arrayFuture.onComplete(_.failed.foreach(_ ⇒ lruCache.clearCache(key)))
       arrayFuture
     })
 
@@ -37,5 +38,9 @@ class LArrayAsyncLRUCache[K](maxSize: Int)(implicit ec: ExecutionContext) extend
       array.writeToArray(0, byteArray, 0, byteArray.length)
       ByteString.fromArrayUnsafe(byteArray)
     }
+  }
+
+  def clearCache(key: K): Unit = {
+    lruCache.clearCache(key)
   }
 }

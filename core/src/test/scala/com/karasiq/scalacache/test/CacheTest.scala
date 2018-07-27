@@ -20,6 +20,8 @@ trait CacheTest extends FlatSpecLike with Matchers {
     name.capitalize + " cache" should "cache value" in {
       cache.getCached("test", getValue) shouldBe "123"
       cache.getCached("test", getValue) shouldBe "123"
+      cache.clearCache("test")
+      intercept[Exception](cache.getCached("test", getValue))
     }
   }
 }

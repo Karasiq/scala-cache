@@ -19,6 +19,10 @@ class SimpleLRUCache[K, V](maxSize: Int) extends Cache[K, V] {
     entry.value
   }
 
+  def clearCache(key: K): Unit = {
+    entriesMap -= key
+  }
+
   protected def clearOldEntries(count: Int): Seq[(K, Entry)] = {
     val deleted = entriesMap
       .toSeq

@@ -32,4 +32,8 @@ class LArrayLRUCache[K](maxSize: Int) extends Cache[K, ByteString] {
     value.writeToArray(0, array, 0, array.length)
     ByteString.fromArrayUnsafe(array)
   }
+
+  def clearCache(key: K): Unit = {
+    lruCache.clearCache(key)
+  }
 }

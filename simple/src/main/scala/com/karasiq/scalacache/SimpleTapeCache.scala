@@ -21,6 +21,10 @@ class SimpleTapeCache[K, V](maxSize: Int) extends Cache[K, V] {
     if (keysSeq.length > maxSize) clearOldEntries(maxSize / 4)
     value
   }
+  
+  def clearCache(key: K): Unit = {
+    valuesMap -= key
+  }
 
   protected def clearOldEntries(i: Int): Unit = {
     val (drop, keep) = keysSeq.splitAt(i)

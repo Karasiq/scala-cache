@@ -56,6 +56,12 @@ class LArrayTapeCache[K <: AnyRef](sizeBytes: Long) extends Cache[K, ByteString]
     }
   }
 
+  def clearCache(key: K): Unit = {
+    entriesMap.remove(key).foreach { entry ⇒
+      entries -= entry.start
+    }
+  }
+
   override def finalize(): Unit = {
     cache.free
     super.finalize()
