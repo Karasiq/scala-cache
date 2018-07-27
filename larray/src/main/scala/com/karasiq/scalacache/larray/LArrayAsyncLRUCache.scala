@@ -14,7 +14,13 @@ object LArrayAsyncLRUCache {
 }
 
 class LArrayAsyncLRUCache[K](maxSize: Int)(implicit ec: ExecutionContext) extends Cache[K, Future[ByteString]] {
-  protected val lruCache = new SimpleLRUCache[K, Future[LByteArray]](maxSize)
+  protected val lruCache = new SimpleLRUCache[K, Future[LByteArray]](maxSize) {
+    override protected def clearOldEntries(count: Int): Seq[(K, Entry)] = {
+      val deleted = super.clearOldEntries(count)
+      deleted.foreach(_._2.value.foreach(_.free))
+      deleted 
+    }
+  }
 
   def getCached(key: K, getValue: () ⇒ Future[ByteString]): Future[ByteString] = {
     val arrayFuture = lruCache.getCached(key, { () ⇒

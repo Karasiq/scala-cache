@@ -12,7 +12,13 @@ object LArrayLRUCache {
 }
 
 class LArrayLRUCache[K](maxSize: Int) extends Cache[K, ByteString] {
-  protected val lruCache = new SimpleLRUCache[K, LByteArray](maxSize)
+  protected val lruCache = new SimpleLRUCache[K, LByteArray](maxSize) {
+    override protected def clearOldEntries(count: Int): Seq[(K, Entry)] = {
+      val deleted = super.clearOldEntries(count)
+      deleted.foreach(_._2.value.free)
+      deleted
+    }
+  }
 
   def getCached(key: K, getValue: () ⇒ ByteString): ByteString = {
     val value = lruCache.getCached(key, { () ⇒

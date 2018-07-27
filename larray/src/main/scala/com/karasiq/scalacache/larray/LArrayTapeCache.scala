@@ -1,24 +1,21 @@
 package com.karasiq.scalacache.larray
 
-import java.util.concurrent.Executors
-
 import scala.collection.mutable
-import scala.concurrent.{ExecutionContext, Future}
 
 import akka.util.ByteString
 import xerial.larray.LByteArray
 
 import com.karasiq.scalacache.Cache
 
-object LArrayAsyncTapeCache {
-  def apply[K <: AnyRef](sizeBytes: Long = 1024 * 1024 * 32): LArrayAsyncTapeCache[K] = {
-    new LArrayAsyncTapeCache(sizeBytes)
+object LArrayTapeCache {
+  def apply[K <: AnyRef](sizeBytes: Long = 1024 * 1024 * 32): LArrayTapeCache[K] = {
+    new LArrayTapeCache[K](sizeBytes)
   }
 }
 
-class LArrayAsyncTapeCache[K <: AnyRef](sizeBytes: Long) extends Cache[K, Future[ByteString]] {
+// Not thread safe
+class LArrayTapeCache[K <: AnyRef](sizeBytes: Long) extends Cache[K, ByteString] {
   protected final case class Entry(key: K, start: Long, size: Int)
-  protected implicit val executionContext = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor())
 
   protected val cache = new LByteArray(sizeBytes)
   protected val entries = mutable.TreeMap.empty[Long, Entry]
@@ -42,34 +39,24 @@ class LArrayAsyncTapeCache[K <: AnyRef](sizeBytes: Long) extends Cache[K, Future
     // println(s"Cache at $position = $chunk")
   }
 
-  def getCached(key: K, getData: () ⇒ Future[ByteString]): Future[ByteString] = {
+  def getCached(key: K, getData: () ⇒ ByteString): ByteString = {
     def fetchDataAndSave() = {
-      val future = getData()
-      future.map { bs ⇒
-        addCacheEntry(key, bs)
-        bs 
-      }
+      val bytes = getData()
+      addCacheEntry(key, bytes)
+      bytes
     }
 
-    if (entriesMap.contains(key)) {
-      val future = Future {
-        entriesMap.get(key) match {
-          case Some(entry) ⇒
-            val data = new Array[Byte](entry.size)
-            for (i ← data.indices) data(i) = cache(entry.start + i)
-            Future.successful(ByteString.fromArrayUnsafe(data))
-          case None ⇒
-            fetchDataAndSave()
-        }
-      }
-      future.flatten
-    } else {
-      fetchDataAndSave()
+    entriesMap.get(key) match {
+      case Some(entry) ⇒
+        val data = new Array[Byte](entry.size)
+        for (i ← data.indices) data(i) = cache(entry.start + i)
+        ByteString.fromArrayUnsafe(data)
+      case None ⇒
+        fetchDataAndSave()
     }
   }
 
   override def finalize(): Unit = {
-    executionContext.shutdown()
     cache.free
     super.finalize()
   }
